@@ -34,8 +34,10 @@ const currentlyBannedItems = [];
 const tempBannedUsers = [];
 watcher
   .on('add', async (cPath) => {
-    console.log(`File ${cPath} has been added`);
-    if (!currentlyBannedItems.includes(cPath)) {
+    if (currentlyBannedItems.includes(cPath)) {
+      currentlyBannedItems.splice(currentlyBannedItems.indexOf(cPath), 1);
+    } else {
+      console.log(`File ${cPath} has been added`);
       fs.readFile(cPath, (err, data) => {
         if (err) throw err;
         let watchedFolderPartners = [];
@@ -49,18 +51,22 @@ watcher
           }
         }
         for (let i = 0; i < watchedFolderPartners.length; i++) {
-          partners[watchedFolderPartners[i]].emit('add-file', {
-            buffer: data,
-            folder: path.basename(watchedFolder),
-            filePath: cPath.replace(`${watchedFolder}\\`, ''),
-          });
+          if (!tempBannedUsers.includes(watchedFolderPartners[i])) {
+            partners[watchedFolderPartners[i]].emit('add-file', {
+              buffer: data,
+              folder: path.basename(watchedFolder),
+              filePath: cPath.replace(`${watchedFolder}\\`, ''),
+            });
+          }
         }
       });
     }
   })
   .on('change', async (cPath) => {
-    console.log(`File ${cPath} has been changed`);
-    if (!currentlyBannedItems.includes(cPath)) {
+    if (currentlyBannedItems.includes(cPath)) {
+      currentlyBannedItems.splice(currentlyBannedItems.indexOf(cPath), 1);
+    } else {
+      console.log(`File ${cPath} has been changed`);
       fs.readFile(cPath, (err, data) => {
         if (err) throw err;
 
@@ -75,19 +81,22 @@ watcher
           }
         }
         for (let i = 0; i < watchedFolderPartners.length; i++) {
-          partners[watchedFolderPartners[i]].emit('change-file', {
-            buffer: data,
-            folder: path.basename(watchedFolder),
-            filePath: cPath.replace(`${watchedFolder}\\`, ''),
-          });
+          if (!tempBannedUsers.includes(watchedFolderPartners[i])) {
+            partners[watchedFolderPartners[i]].emit('change-file', {
+              buffer: data,
+              folder: path.basename(watchedFolder),
+              filePath: cPath.replace(`${watchedFolder}\\`, ''),
+            });
+          }
         }
       });
     }
   })
   .on('unlink', async (cPath) => {
-    console.log(`File ${cPath} has been removed`);
-    console.log(currentlyBannedItems, !currentlyBannedItems.includes(cPath));
-    if (!currentlyBannedItems.includes(cPath)) {
+    if (currentlyBannedItems.includes(cPath)) {
+      currentlyBannedItems.splice(currentlyBannedItems.indexOf(cPath), 1);
+    } else {
+      console.log(`File ${cPath} has been removed`);
       let watchedFolderPartners = [];
       let watchedFolder = '';
 
@@ -99,20 +108,20 @@ watcher
         }
       }
       for (let i = 0; i < watchedFolderPartners.length; i++) {
-        partners[watchedFolderPartners[i]].emit('remove-file', {
-          folder: path.basename(watchedFolder),
-          filePath: cPath.replace(`${watchedFolder}\\`, ''),
-        });
+        if (!tempBannedUsers.includes(watchedFolderPartners[i])) {
+          partners[watchedFolderPartners[i]].emit('remove-file', {
+            folder: path.basename(watchedFolder),
+            filePath: cPath.replace(`${watchedFolder}\\`, ''),
+          });
+        }
       }
     }
   })
   .on('addDir', (cPath) => {
-    console.log(`currentlyBannedItems: ${currentlyBannedItems}`);
-    console.log(`Directory ${cPath} has been added`);
-    if (
-      !currentlyBannedItems.includes(cPath) &&
-      !Object.keys(sharesFolderWise).includes(cPath)
-    ) {
+    if (currentlyBannedItems.includes(cPath)) {
+      currentlyBannedItems.splice(currentlyBannedItems.indexOf(cPath), 1);
+    } else if (!Object.keys(sharesFolderWise).includes(cPath)) {
+      console.log(`Directory ${cPath} has been added`);
       let watchedFolderPartners = [];
       let watchedFolder = '';
 
@@ -123,27 +132,21 @@ watcher
           watchedFolderPartners = sharesFolderWise[key];
         }
       }
-      console.log();
-      console.log(watchedFolder);
-      console.log(Object.keys(sharesFolderWise));
-      console.log(Object.keys(sharesFolderWise).includes(cPath));
-      console.log(watchedFolderPartners);
-      console.log(path.basename(watchedFolder));
-      console.log(cPath);
-      console.log(cPath.replace(`${watchedFolder}\\`, ''));
-      console.log();
       for (let i = 0; i < watchedFolderPartners.length; i++) {
-        partners[watchedFolderPartners[i]].emit('add-directory', {
-          folder: path.basename(watchedFolder),
-          filePath: cPath.replace(`${watchedFolder}\\`, ''),
-        });
+        if (!tempBannedUsers.includes(watchedFolderPartners[i])) {
+          partners[watchedFolderPartners[i]].emit('add-directory', {
+            folder: path.basename(watchedFolder),
+            filePath: cPath.replace(`${watchedFolder}\\`, ''),
+          });
+        }
       }
     }
   })
   .on('unlinkDir', (cPath) => {
-    console.log(`currentlyBannedItems: ${currentlyBannedItems}`);
-    console.log(`Directory ${cPath} has been removed`);
-    if (!currentlyBannedItems.includes(cPath)) {
+    if (currentlyBannedItems.includes(cPath)) {
+      currentlyBannedItems.splice(currentlyBannedItems.indexOf(cPath), 1);
+    } else {
+      console.log(`Directory ${cPath} has been removed`);
       let watchedFolderPartners = [];
       let watchedFolder = '';
 
@@ -155,10 +158,12 @@ watcher
         }
       }
       for (let i = 0; i < watchedFolderPartners.length; i++) {
-        partners[watchedFolderPartners[i]].emit('remove-directory', {
-          folder: path.basename(watchedFolder),
-          filePath: cPath.replace(`${watchedFolder}\\`, ''),
-        });
+        if (!tempBannedUsers.includes(watchedFolderPartners[i])) {
+          partners[watchedFolderPartners[i]].emit('remove-directory', {
+            folder: path.basename(watchedFolder),
+            filePath: cPath.replace(`${watchedFolder}\\`, ''),
+          });
+        }
       }
     }
   });
@@ -185,26 +190,26 @@ watcher
 //   console.log('Connected to server!');
 // });
 
-const folder = 'C:\\Users\\asda\\Desktop\\New1';
-const partnerIp = 'http://localhost:9001';
+// const folder = 'C:\\Users\\asda\\Desktop\\New1';
+// const partnerIp = 'http://localhost:9001';
 
-const p = ioc(partnerIp, {
-  reconnection: true,
-  reconnectionDelay: 500,
-  transports: ['websocket'],
-  extraHeaders: {
-    'frontend-header': 'frontend',
-  },
-});
-partners[partnerIp] = p;
-sharesPartnerWise[partnerIp] = {};
-sharesPartnerWise[partnerIp].New1 = folder;
-sharesFolderWise[folder] = [partnerIp];
-watcher.add(folder);
+// const p = ioc(partnerIp, {
+//   reconnection: true,
+//   reconnectionDelay: 500,
+//   transports: ['websocket'],
+//   extraHeaders: {
+//     'frontend-header': 'frontend',
+//   },
+// });
+// partners[partnerIp] = p;
+// sharesPartnerWise[partnerIp] = {};
+// sharesPartnerWise[partnerIp].New1 = folder;
+// sharesFolderWise[folder] = [partnerIp];
+// watcher.add(folder);
 
-p.on('connect', () => {
-  console.log('Connected to server!');
-});
+// p.on('connect', () => {
+//   console.log('Connected to server!');
+// });
 // console.log(`being watched: ${Object.keys(watcher.getWatched())}`);
 
 /// ////////////////////////////////////
@@ -229,6 +234,7 @@ io.on('connection', function (socket) {
       arg.filePath
     }`;
     currentlyBannedItems.push(totalPath);
+    // tempBannedUsers.push(partnerIp);
     fs.access(totalPath, fs.constants.F_OK, (err) => {
       fs.unlink(totalPath, (errFile) => {
         if (errFile) {
@@ -237,7 +243,6 @@ io.on('connection', function (socket) {
         console.log(`File ${totalPath} has been removed`);
       });
     });
-    currentlyBannedItems.splice(currentlyBannedItems.indexOf(totalPath), 1);
   });
 
   socket.on('remove-directory', async (arg) => {
@@ -245,42 +250,29 @@ io.on('connection', function (socket) {
       arg.filePath
     }`;
     currentlyBannedItems.push(totalPath);
+    // tempBannedUsers.push(partnerIp);
     await fs.rmSync(totalPath, { recursive: true, force: true });
     console.log(`Folder ${totalPath} has been removed`);
-    currentlyBannedItems.splice(currentlyBannedItems.indexOf(totalPath), 1);
   });
 
   socket.on('add-file', (arg) => {
     const totalPath = `${sharesPartnerWise[partnerIp][arg.folder]}\\${
       arg.filePath
     }`;
-    // // arg.buffer.split(" ")
-    // console.log(
-    //   arg.buffer,
-    //   arg.folder,
-    //   arg.filePath,
-    //   totalPath
-    // sharesPartnerWise[partnerIp][arg[arg.folder]],
-    // sharesPartnerWise[partnerIp],
-    // sharesPartnerWise
-    // );
-    // console.log(arg.folder);
-    // console.log(arg.filePath);
 
     currentlyBannedItems.push(totalPath);
+    // tempBannedUsers.push(partnerIp);
     fs.access(totalPath, fs.constants.F_OK, (err) => {
       if (err) {
         // File does not exist, create it
         fs.writeFile(totalPath, arg.buffer, (errFile) => {
           if (errFile) {
-            console.error(errFile);
             return;
           }
           console.log(`File ${totalPath} has been added`);
         });
       }
     });
-    currentlyBannedItems.splice(currentlyBannedItems.indexOf(totalPath), 1);
   });
 
   socket.on('change-file', (arg) => {
@@ -288,12 +280,12 @@ io.on('connection', function (socket) {
       arg.filePath
     }`;
     currentlyBannedItems.push(totalPath);
+
     fs.access(totalPath, fs.constants.F_OK, (err) => {
       if (err) {
         // File does not exist, create it
         fs.writeFile(totalPath, arg.buffer, (errFile) => {
           if (errFile) {
-            console.error(errFile);
             return;
           }
           console.log(`File ${totalPath} has been added`);
@@ -305,7 +297,6 @@ io.on('connection', function (socket) {
           }
           fs.writeFile(totalPath, arg.buffer, (errFileWrite) => {
             if (errFileWrite) {
-              console.error(errFileWrite);
               return;
             }
             console.log(`File ${totalPath} has been changed`);
@@ -313,7 +304,6 @@ io.on('connection', function (socket) {
         });
       }
     });
-    currentlyBannedItems.splice(currentlyBannedItems.indexOf(totalPath), 1);
   });
 
   socket.on('add-directory', (arg) => {
@@ -321,14 +311,13 @@ io.on('connection', function (socket) {
       arg.filePath
     }`;
     currentlyBannedItems.push(totalPath);
+    // tempBannedUsers.push(partnerIp);
     fs.mkdir(totalPath, (errFile) => {
       if (errFile) {
-        console.error(errFile);
         return;
       }
       console.log(`Folder ${totalPath} has been added`);
     });
-    currentlyBannedItems.splice(currentlyBannedItems.indexOf(totalPath), 1);
   });
 
   /// ////////////////////////////////////////////////////////////////////////////////////////////////////

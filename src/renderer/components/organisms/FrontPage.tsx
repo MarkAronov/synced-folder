@@ -50,7 +50,7 @@ const FrontPage = () => {
     ) {
       info?.setInfo({
         ...info.data,
-        ptable: info?.data.ptable.concat(msg),
+        ptable: msg,
       });
     }
   });
