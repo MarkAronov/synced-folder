@@ -21,7 +21,6 @@ const useProvideInfo = (): any => {
     fTable: [],
     pTable: [],
     error: { state: false, message: '' },
-    ip: '',
   });
 
   const setInfo = (d: any) => {

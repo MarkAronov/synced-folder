@@ -18,7 +18,7 @@ const ThemeEngine = (): JSX.Element => {
     () =>
       createTheme({
         palette: {
-          mode: prefersDarkMode ? 'dark' : 'light',
+          mode: prefersDarkMode ? 'dark' : 'dark',
         },
       }),
     [prefersDarkMode]

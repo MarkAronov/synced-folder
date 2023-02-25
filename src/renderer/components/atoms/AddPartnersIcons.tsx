@@ -15,11 +15,11 @@ import GroupsIcon from '@mui/icons-material/Groups';
 import { useInfo } from '../../context/useInfo';
 
 /**
- * The HeaderPartnersIcon component
+ * The AddPartnersIcons component
  * This component gives the user the ability to add a new partner
- * @return {JSX.Element} returns a HeaderPartnersIcon component
+ * @return {JSX.Element} returns a AddPartnersIcons component
  */
-const HeaderPartnersIcon = () => {
+const AddPartnersIcons = () => {
   // component settings and event data
   const [open, setOpen] = useState(false);
   const [disabledSend, setDisabledSend] = useState(false);
@@ -106,4 +106,4 @@ const HeaderPartnersIcon = () => {
   );
 };
 
-export default HeaderPartnersIcon;
+export default AddPartnersIcons;

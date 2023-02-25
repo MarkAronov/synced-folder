@@ -1,3 +1,4 @@
+/* eslint-disable guard-for-in */
 /* eslint-disable no-useless-return */
 /* eslint-disable no-restricted-syntax */
 /* eslint-disable no-plusplus */
@@ -6,6 +7,7 @@ const express = require('express');
 const chokidar = require('chokidar');
 const path = require('path');
 const ioc = require('socket.io-client');
+const os = require('os');
 
 const router = express.Router();
 const fs = require('fs');
@@ -22,6 +24,7 @@ const socketapi = {
 };
 
 // server data
+let ip = '';
 const partners = {};
 const potentialPartners = {};
 const sharesPartnerWise = {};
@@ -36,7 +39,20 @@ const watcher = chokidar.watch([], {
   },
 });
 let frontendSocket = null;
-
+const networkInterfaces = os.networkInterfaces();
+for (const name of Object.keys(networkInterfaces)) {
+  if (
+    name.startsWith('Wi-Fi') ||
+    name.startsWith('eth') ||
+    name.startsWith('Ethernet0')
+  ) {
+    for (const net of networkInterfaces[name]) {
+      if (net.family === 'IPv4' && !net.internal) {
+        ip = net.address;
+      }
+    }
+  }
+}
 // main listener of the server, it will see changes and will emit to the needed partners
 watcher
   .on('add', async (cPath) => {
@@ -234,9 +250,7 @@ io.on('connection', function (socket) {
 
   // basic printing of connected clients
   console.log('connected:', partnerIp);
-  socket.on('disconnect', () => {
-    console.log('Client disconnected');
-  });
+
   // add a file
   socket.on('add-file', (arg) => {
     const totalPath = `${sharesPartnerWise[partnerIp][arg.folder]}\\${
@@ -381,7 +395,6 @@ io.on('connection', function (socket) {
     }
     if (!(arg.folder in sharesPartnerWise[arg.partner])) {
       const fullFolderString = `${arg.folderPathString}\\${arg.folder}`;
-      console.log(fullFolderString);
       if (!fs.existsSync(fullFolderString)) {
         fs.mkdir(fullFolderString, (errFile) => {
           if (errFile) {
@@ -403,11 +416,6 @@ io.on('connection', function (socket) {
       if (!(fullFolderString in folderStructure)) {
         folderStructure[fullFolderString] = [];
       } else {
-        console.log();
-        console.log(fullFolderString);
-        console.log(fullFolderString[fullFolderString]);
-        console.log(fullFolderString);
-        console.log();
         for (let i = 0; i < folderStructure[fullFolderString].length; i++) {
           const cPath = `${fullFolderString}\\${folderStructure[fullFolderString][i].name}`;
           if (folderStructure[fullFolderString][i].type === 'file') {
@@ -437,19 +445,11 @@ io.on('connection', function (socket) {
   socket.on('backend-starts-sync-with-partner', (msg) => {
     console.log('backend-starts-sync-with-partner');
     const fullFolderString = sharesPartnerWise[partnerIp][msg];
-    console.log();
-    console.log(fullFolderString);
-    console.log(folderStructure);
-    console.log(fullFolderString in folderStructure);
-    console.log();
 
     if (
       fullFolderString in folderStructure &&
       folderStructure[fullFolderString].length !== 0
     ) {
-      console.log(folderStructure[fullFolderString][0]);
-      console.log(folderStructure[fullFolderString][0].name);
-      console.log();
       for (let i = 0; i < folderStructure[fullFolderString].length; i++) {
         const cPath = `${fullFolderString}\\${folderStructure[fullFolderString][i].name}`;
         if (folderStructure[fullFolderString][i].type === 'file') {
@@ -477,10 +477,7 @@ io.on('connection', function (socket) {
   // remove a specific folder
   socket.on('frontend-remove-partner-folder-share', (arg) => {
     console.log('frontend-remove-partner-folder-share', arg);
-    console.log();
-    console.log(sharesPartnerWise);
-    console.log(sharesFolderWise);
-    console.log(folderStructure);
+
     delete sharesPartnerWise[arg.selectedPartner][
       path.basename(arg.folderString)
     ];
@@ -492,11 +489,6 @@ io.on('connection', function (socket) {
       folderStructure[arg.folderString] = [];
       watcher.unwatch(arg.folderString);
     }
-    console.log();
-    console.log(sharesPartnerWise);
-    console.log(sharesFolderWise);
-    console.log(folderStructure);
-    console.log();
 
     partners[arg.selectedPartner].emit(
       'backend-remove-partner-folder-share',
@@ -507,10 +499,6 @@ io.on('connection', function (socket) {
   socket.on('backend-remove-partner-folder-share', (msg) => {
     console.log('backend-remove-partner-folder-share', msg);
 
-    console.log();
-    console.log(sharesPartnerWise);
-    console.log(sharesFolderWise);
-    console.log(folderStructure);
     const fullFolderString = sharesPartnerWise[partnerIp][msg];
     delete sharesPartnerWise[partnerIp][msg];
     sharesFolderWise[fullFolderString].splice(
@@ -521,12 +509,6 @@ io.on('connection', function (socket) {
       folderStructure[fullFolderString] = [];
       watcher.unwatch(fullFolderString);
     }
-    console.log();
-    console.log(sharesPartnerWise);
-    console.log(sharesFolderWise);
-    console.log(folderStructure);
-    console.log();
-
     frontendSocket.emit('backend-remove-partner-folder', {
       selectedPartner: partnerIp,
       folderString: fullFolderString,
@@ -547,25 +529,27 @@ io.on('connection', function (socket) {
   // and then send a partner request to the selected server
   socket.on('frontend-send-partner-request', async (msg) => {
     const receivedPartnerIp = msg.split(':')[0];
-    if (partners[receivedPartnerIp] === undefined) {
-      console.log('frontend-send-partner-request', msg);
-      // connect to the requested server
-      let pSocket = '';
-      try {
-        pSocket = ioc(`http://${msg}`, {
-          reconnection: true,
-          reconnectionDelay: 500,
-          transports: ['websocket'],
-          extraHeaders: {
-            'frontend-header': 'frontend',
-          },
-        });
-      } catch (error) {
-        console.error(`Error connecting to  server: ${error}`);
-      }
+    if (ip !== receivedPartnerIp) {
+      if (partners[receivedPartnerIp] === undefined) {
+        console.log('frontend-send-partner-request', msg);
+        // connect to the requested server
+        let pSocket = '';
+        try {
+          pSocket = ioc(`http://${msg}`, {
+            reconnection: true,
+            reconnectionDelay: 500,
+            transports: ['websocket'],
+            extraHeaders: {
+              'frontend-header': 'frontend',
+            },
+          });
+        } catch (error) {
+          console.error(`Error connecting to  server: ${error}`);
+        }
 
-      potentialPartners[receivedPartnerIp] = pSocket;
-      pSocket.emit('backend-send-partner-request');
+        potentialPartners[receivedPartnerIp] = pSocket;
+        pSocket.emit('backend-send-partner-request');
+      }
     }
   });
 
@@ -608,11 +592,51 @@ io.on('connection', function (socket) {
   });
 
   // remove a specific partner
-  socket.on('frontend-remove-partner', (arg) => {
-    partners[arg.selectedPartner].emit();
-    delete partners[arg.selectedPartner];
+  socket.on('frontend-remove-partner', (msg) => {
+    console.log('frontend-remove-partner', msg.selectedPartner);
+    delete sharesPartnerWise[msg.selectedPartner];
+    for (const key in sharesFolderWise) {
+      sharesFolderWise[key].splice(
+        sharesFolderWise[key].indexOf(msg.selectedPartner),
+        1
+      );
+      frontendSocket.emit('backend-remove-partner-folder', {
+        selectedPartner: msg.selectedPartner,
+        folderString: sharesPartnerWise[msg.selectedPartner][key],
+      });
+      if (sharesFolderWise[key].length === 0) {
+        folderStructure[key] = [];
+        watcher.unwatch(key);
+      }
+    }
+    partners[msg.selectedPartner].disconnect();
+    delete partners[msg.selectedPartner];
+    console.log(partners);
     frontendSocket.emit('backend-get-partners', Object.keys(partners));
-    console.log('backend-confirm-partner-request', partnerIp);
+  });
+
+  socket.on('disconnect', () => {
+    console.log('backend-remove-partner', partnerIp);
+    if (partnerIp !== '1') {
+      for (const key in sharesFolderWise) {
+        sharesFolderWise[key].splice(
+          sharesFolderWise[key].indexOf(partnerIp),
+          1
+        );
+        frontendSocket.emit('backend-remove-partner-folder', {
+          selectedPartner: partnerIp,
+          folderString: sharesPartnerWise[partnerIp][key],
+        });
+        if (sharesFolderWise[key].length === 0) {
+          folderStructure[key] = [];
+          watcher.unwatch(key);
+        }
+      }
+      delete sharesPartnerWise[partnerIp];
+      delete partners[partnerIp];
+      console.log(partners);
+      frontendSocket.emit('backend-get-partners', Object.keys(partners));
+    }
   });
 });
 

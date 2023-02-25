@@ -30,17 +30,10 @@ const FrontPage = () => {
 
   // listen for backend on getting a list of active partners and then save it
   info.socket.on('backend-get-partners', (msg) => {
-    if (
-      !(info?.data.pTable.length === msg.length) &&
-      info?.data.pTable.every((element, index) => {
-        return element === msg[index];
-      })
-    ) {
-      info?.setInfo({
-        ...info.data,
-        pTable: msg,
-      });
-    }
+    info?.setInfo({
+      ...info.data,
+      pTable: msg,
+    });
   });
 
   // open up a dialog in order to pick a location for the shared folder
@@ -67,19 +60,24 @@ const FrontPage = () => {
   }
 
   info.socket.on('backend-remove-partner-folder', (msg) => {
-    const tempFTable = info.data.fTable.split();
-    for (let i = 0; i < tempFTable.length; i++) {
-      if (
-        tempFTable[i].folder === msg.folderString &&
-        tempFTable[i].partner === msg.selectedPartner
-      ) {
-        tempFTable.splice(i, 1);
+    console.log(msg);
+    console.log(info.data.fTable);
+
+    if (info.data.fTable.length !== 0) {
+      const tempFTable = info.data.fTable.splice();
+      for (let i = 0; i < tempFTable.length; i++) {
+        if (
+          tempFTable[i].folder === msg.folderString &&
+          tempFTable[i].partner === msg.selectedPartner
+        ) {
+          tempFTable.splice(i, 1);
+        }
       }
+      info?.setInfo({
+        ...info.data,
+        fTable: tempFTable,
+      });
     }
-    info?.setInfo({
-      ...info.data,
-      fTable: tempFTable,
-    });
   });
 
   return (

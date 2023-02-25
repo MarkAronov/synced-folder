@@ -33,15 +33,14 @@ const RemoveFolderIcon = () => {
   // check constantly for changes in the input and decide whether the input is a valid target
   useEffect(() => {
     setDisabledSend(
-      selectedShare &&
-        Object.keys(selectedShare).length === 0 &&
+      Object.keys(selectedShare).length === 0 &&
         Object.getPrototypeOf(selectedShare) === Object.prototype
     );
   }, [selectedShare]);
 
   // add the dialog content into the event data variables
   const handleChange = (event) => {
-    setSelectedShare(event.target.value as string);
+    setSelectedShare(event.target.value);
   };
 
   // handle the state of the dialog
@@ -103,7 +102,7 @@ const RemoveFolderIcon = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>Cancel</Button>
-          <Button disabled={!disabledSend} onClick={handleRemove}>
+          <Button disabled={disabledSend} onClick={handleRemove}>
             Remove
           </Button>
         </DialogActions>

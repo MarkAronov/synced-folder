@@ -56,9 +56,9 @@ const AddFolderIcon = () => {
   // handle the event where the input is valid and the user submitted it
   const handleSubmit = () => {
     if (
-      info.data.fTable.every(
+      !info.data.fTable.find(
         (item) =>
-          item.folder !== folderString && item.partner !== selectedPartner
+          item.folder === folderString && item.partner === selectedPartner
       )
     ) {
       info.socket.emit('frontend-send-partner-folder-share', {
@@ -79,7 +79,12 @@ const AddFolderIcon = () => {
 
   return (
     <>
-      <IconButton component="span" size="large" onClick={handleFolder}>
+      <IconButton
+        component="span"
+        size="large"
+        onClick={handleFolder}
+        disabled={info.data?.pTable.length === 0}
+      >
         <CreateNewFolderIcon />
       </IconButton>
       <Dialog open={open} onClose={handleClose}>

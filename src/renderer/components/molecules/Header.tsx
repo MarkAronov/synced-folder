@@ -8,11 +8,10 @@ import {
   Typography,
 } from '@mui/material/';
 import { useTheme } from '@mui/material/styles';
-import { useInfo } from '../../context/useInfo';
 import AddFolderIcon from '../atoms/AddFolderIcon';
 import RemoveFolderIcon from '../atoms/RemoveFolderIcon';
 import RemovePartnerIcon from '../atoms/RemovePartnerIcon';
-import HeaderPartnersIcon from '../atoms/HeaderPartnersIcons';
+import AddPartnersIcons from '../atoms/AddPartnersIcons';
 
 /**
  * The Header component
@@ -21,7 +20,6 @@ import HeaderPartnersIcon from '../atoms/HeaderPartnersIcons';
  * @return {JSX.Element} returns a Header component
  */
 const Header = (): JSX.Element => {
-  const info = useInfo();
   const theme = useTheme();
   const widthChange = useMediaQuery(theme.breakpoints.down('sm'));
   const [ip, setIp] = useState('');
@@ -32,12 +30,7 @@ const Header = (): JSX.Element => {
   // listen back for a replay and then add the local ip to the header banner
   useEffect(() => {
     window.electron.ipcRenderer.once('get-ip', (arg) => {
-      console.log('asd');
       setIp(arg);
-      info?.setInfo({
-        ...info.data,
-        ip,
-      });
     });
   }, [ip]);
 
@@ -67,7 +60,7 @@ const Header = (): JSX.Element => {
         <RemoveFolderIcon />
         <AddFolderIcon />
         <RemovePartnerIcon />
-        <HeaderPartnersIcon />
+        <AddPartnersIcons />
       </Box>
     </>
   ));
