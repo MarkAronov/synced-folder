@@ -1,3 +1,4 @@
+/* eslint-disable no-useless-return */
 /* eslint-disable no-restricted-syntax */
 /* eslint-disable no-plusplus */
 /* eslint-disable no-console */
@@ -215,51 +216,6 @@ watcher
     }
   });
 
-/// //////////////////////////////////////
-// const folder = 'C:\\Users\\asda\\Desktop\\New2\\New1';
-// const partnerIp = 'http://localhost:9000';
-
-// const p = ioc(partnerIp, {
-//   reconnection: true,
-//   reconnectionDelay: 500,
-//   transports: ['websocket'],
-//   extraHeaders: {
-//     'frontend-header': 'frontend',
-//   },
-// });
-// partners[partnerIp] = p;
-// sharesPartnerWise[partnerIp] = {};
-// sharesPartnerWise[partnerIp].New1 = folder;
-// sharesFolderWise[folder] = [partnerIp];
-// watcher.add(folder);
-
-// p.on('connect', () => {
-//   console.log('Connected to server!');
-// });
-
-// const folder = 'C:\\Users\\asda\\Desktop\\New1';
-// const partnerIp = 'http://localhost:9001';
-
-// const p = ioc(partnerIp, {
-//   reconnection: true,
-//   reconnectionDelay: 500,
-//   transports: ['websocket'],
-//   extraHeaders: {
-//     'frontend-header': 'frontend',
-//   },
-// });
-// partners[partnerIp] = p;
-// sharesPartnerWise[partnerIp] = {};
-// sharesPartnerWise[partnerIp].New1 = folder;
-// sharesFolderWise[folder] = [partnerIp];
-// watcher.add(folder);
-
-// p.on('connect', () => {
-//   console.log('Connected to server!');
-// });
-// console.log(`being watched: ${Object.keys(watcher.getWatched())}`);
-
-/// ////////////////////////////////////
 // the main instance
 io.on('connection', function (socket) {
   if (socket.id === io.engine.id) {
@@ -425,7 +381,11 @@ io.on('connection', function (socket) {
       const fullFolderString = `${arg.folderPathString}\\${arg.folder}`;
       console.log(fullFolderString);
       if (!fs.existsSync(fullFolderString)) {
-        fs.mkdirSync(fullFolderString);
+        fs.mkdir(fullFolderString, (errFile) => {
+          if (errFile) {
+            return;
+          }
+        });
       }
       sharesPartnerWise[arg.partner][arg.folder] = fullFolderString;
 
@@ -441,7 +401,12 @@ io.on('connection', function (socket) {
       if (!(fullFolderString in folderStructure)) {
         folderStructure[fullFolderString] = [];
       } else {
-        for (let i = 0; folderStructure[fullFolderString].length; i++) {
+        console.log();
+        console.log(fullFolderString);
+        console.log(fullFolderString[fullFolderString]);
+        console.log(fullFolderString);
+        console.log();
+        for (let i = 0; i < folderStructure[fullFolderString].length; i++) {
           const cPath = `${fullFolderString}\\${folderStructure[fullFolderString][i].name}`;
           if (folderStructure[fullFolderString][i].type === 'file') {
             fs.readFile(cPath, (err, data) => {
@@ -474,10 +439,16 @@ io.on('connection', function (socket) {
     console.log(fullFolderString);
     console.log(folderStructure);
     console.log(fullFolderString in folderStructure);
-    console.log(folderStructure[fullFolderString]);
     console.log();
-    if (fullFolderString in folderStructure) {
-      for (let i = 0; folderStructure[fullFolderString].length; i++) {
+
+    if (
+      fullFolderString in folderStructure &&
+      folderStructure[fullFolderString].length !== 0
+    ) {
+      console.log(folderStructure[fullFolderString][0]);
+      console.log(folderStructure[fullFolderString][0].name);
+      console.log();
+      for (let i = 0; i < folderStructure[fullFolderString].length; i++) {
         const cPath = `${fullFolderString}\\${folderStructure[fullFolderString][i].name}`;
         if (folderStructure[fullFolderString][i].type === 'file') {
           fs.readFile(cPath, (err, data) => {

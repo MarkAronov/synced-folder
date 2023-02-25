@@ -55,17 +55,24 @@ const AddFolderIcon = () => {
 
   // handle the event where the input is valid and the user submitted it
   const handleSubmit = () => {
-    info.socket.emit('frontend-send-partner-folder-share', {
-      selectedPartner,
-      folderString,
-    });
-    info?.setInfo({
-      ...info.data,
-      fTable: info?.data.fTable.concat({
-        folder: folderString,
-        partner: selectedPartner,
-      }),
-    });
+    if (
+      info.data.fTable.every(
+        (item) =>
+          item.folder !== folderString && item.partner !== selectedPartner
+      )
+    ) {
+      info.socket.emit('frontend-send-partner-folder-share', {
+        selectedPartner,
+        folderString,
+      });
+      info?.setInfo({
+        ...info.data,
+        fTable: info?.data.fTable.concat({
+          folder: folderString,
+          partner: selectedPartner,
+        }),
+      });
+    }
     setOpen(false);
     setSelectedPartner('');
   };
