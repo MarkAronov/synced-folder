@@ -55,14 +55,16 @@ const HeaderPartnersIcon = () => {
 
   // handle the event where the input is valid and the user submitted it
   const handleSubmit = async () => {
-    setOpen(false);
-    await info.socket.emit(
-      'frontend-send-partner-request',
-      `${ipString}:${portString}`
-    );
+    if (info.data.ip !== ipString) {
+      await info.socket.emit(
+        'frontend-send-partner-request',
+        `${ipString}:${portString}`
+      );
+    }
     setIpString('');
     setPortString('');
     setFullString('');
+    setOpen(false);
   };
 
   // add the dialog content into the event data variables

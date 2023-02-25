@@ -66,6 +66,22 @@ const FrontPage = () => {
     setBackendData({});
   }
 
+  info.socket.on('backend-remove-partner-folder', (msg) => {
+    const tempFTable = info.data.fTable.split();
+    for (let i = 0; i < tempFTable.length; i++) {
+      if (
+        tempFTable[i].folder === msg.folderString &&
+        tempFTable[i].partner === msg.selectedPartner
+      ) {
+        tempFTable.splice(i, 1);
+      }
+    }
+    info?.setInfo({
+      ...info.data,
+      fTable: tempFTable,
+    });
+  });
+
   return (
     <Box
       sx={{

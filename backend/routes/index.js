@@ -234,7 +234,9 @@ io.on('connection', function (socket) {
 
   // basic printing of connected clients
   console.log('connected:', partnerIp);
-
+  socket.on('disconnect', () => {
+    console.log('Client disconnected');
+  });
   // add a file
   socket.on('add-file', (arg) => {
     const totalPath = `${sharesPartnerWise[partnerIp][arg.folder]}\\${
@@ -474,13 +476,61 @@ io.on('connection', function (socket) {
 
   // remove a specific folder
   socket.on('frontend-remove-partner-folder-share', (arg) => {
+    console.log('frontend-remove-partner-folder-share', arg);
+    console.log();
+    console.log(sharesPartnerWise);
+    console.log(sharesFolderWise);
+    console.log(folderStructure);
+    delete sharesPartnerWise[arg.selectedPartner][
+      path.basename(arg.folderString)
+    ];
+    sharesFolderWise[arg.folderString].splice(
+      sharesFolderWise[arg.folderString].indexOf(arg.selectedPartner),
+      1
+    );
+    if (sharesFolderWise[arg.folderString].length === 0) {
+      folderStructure[arg.folderString] = [];
+      watcher.unwatch(arg.folderString);
+    }
+    console.log();
+    console.log(sharesPartnerWise);
+    console.log(sharesFolderWise);
+    console.log(folderStructure);
+    console.log();
+
     partners[arg.selectedPartner].emit(
       'backend-remove-partner-folder-share',
-      arg.folderString
+      path.basename(arg.folderString)
     );
-    delete partners[arg.selectedPartner];
-    frontendSocket.emit('backend-get-partners', Object.keys(partners));
-    console.log('backend-confirm-partner-request', partnerIp);
+  });
+
+  socket.on('backend-remove-partner-folder-share', (msg) => {
+    console.log('backend-remove-partner-folder-share', msg);
+
+    console.log();
+    console.log(sharesPartnerWise);
+    console.log(sharesFolderWise);
+    console.log(folderStructure);
+    const fullFolderString = sharesPartnerWise[partnerIp][msg];
+    delete sharesPartnerWise[partnerIp][msg];
+    sharesFolderWise[fullFolderString].splice(
+      sharesFolderWise[fullFolderString].indexOf(partnerIp),
+      1
+    );
+    if (sharesFolderWise[fullFolderString].length === 0) {
+      folderStructure[fullFolderString] = [];
+      watcher.unwatch(fullFolderString);
+    }
+    console.log();
+    console.log(sharesPartnerWise);
+    console.log(sharesFolderWise);
+    console.log(folderStructure);
+    console.log();
+
+    frontendSocket.emit('backend-remove-partner-folder', {
+      selectedPartner: partnerIp,
+      folderString: fullFolderString,
+    });
   });
 
   /// ////////////////////////////////////////////////////////////////////////////////////////////////////
