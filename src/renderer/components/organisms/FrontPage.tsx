@@ -70,7 +70,7 @@ const FrontPage = () => {
       info?.setInfo({
         ...info.data,
         ftable: info?.data.ftable.concat({
-          folder: arg,
+          folder: `${arg}\\${dataToSend.folder}`,
           partner: dataToSend.selectedParter,
         }),
       });

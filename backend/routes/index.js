@@ -34,69 +34,12 @@ const currentlyBannedItems = [];
 const tempBannedUsers = [];
 watcher
   .on('add', async (cPath) => {
-    if (currentlyBannedItems.includes(cPath)) {
-      currentlyBannedItems.splice(currentlyBannedItems.indexOf(cPath), 1);
-    } else {
-      console.log(`File ${cPath} has been added`);
-      fs.readFile(cPath, (err, data) => {
-        if (err) throw err;
-        let watchedFolderPartners = [];
-        let watchedFolder = '';
-
-        // eslint-disable-next-line no-restricted-syntax
-        for (const key of Object.keys(sharesFolderWise)) {
-          if (cPath.includes(key)) {
-            watchedFolder = key;
-            watchedFolderPartners = sharesFolderWise[key];
-          }
-        }
-        for (let i = 0; i < watchedFolderPartners.length; i++) {
-          if (!tempBannedUsers.includes(watchedFolderPartners[i])) {
-            partners[watchedFolderPartners[i]].emit('add-file', {
-              buffer: data,
-              folder: path.basename(watchedFolder),
-              filePath: cPath.replace(`${watchedFolder}\\`, ''),
-            });
-          }
-        }
-      });
-    }
-  })
-  .on('change', async (cPath) => {
-    if (currentlyBannedItems.includes(cPath)) {
-      currentlyBannedItems.splice(currentlyBannedItems.indexOf(cPath), 1);
-    } else {
-      console.log(`File ${cPath} has been changed`);
-      fs.readFile(cPath, (err, data) => {
-        if (err) throw err;
-
-        let watchedFolderPartners = [];
-        let watchedFolder = '';
-
-        // eslint-disable-next-line no-restricted-syntax
-        for (const key of Object.keys(sharesFolderWise)) {
-          if (cPath.includes(key)) {
-            watchedFolder = key;
-            watchedFolderPartners = sharesFolderWise[key];
-          }
-        }
-        for (let i = 0; i < watchedFolderPartners.length; i++) {
-          if (!tempBannedUsers.includes(watchedFolderPartners[i])) {
-            partners[watchedFolderPartners[i]].emit('change-file', {
-              buffer: data,
-              folder: path.basename(watchedFolder),
-              filePath: cPath.replace(`${watchedFolder}\\`, ''),
-            });
-          }
-        }
-      });
-    }
-  })
-  .on('unlink', async (cPath) => {
-    if (currentlyBannedItems.includes(cPath)) {
-      currentlyBannedItems.splice(currentlyBannedItems.indexOf(cPath), 1);
-    } else {
-      console.log(`File ${cPath} has been removed`);
+    // if (currentlyBannedItems.includes(cPath)) {
+    //   currentlyBannedItems.splice(currentlyBannedItems.indexOf(cPath), 1);
+    // } else {
+    console.log(`File ${cPath} has been added`);
+    fs.readFile(cPath, (err, data) => {
+      if (err) throw err;
       let watchedFolderPartners = [];
       let watchedFolder = '';
 
@@ -108,19 +51,92 @@ watcher
         }
       }
       for (let i = 0; i < watchedFolderPartners.length; i++) {
-        if (!tempBannedUsers.includes(watchedFolderPartners[i])) {
-          partners[watchedFolderPartners[i]].emit('remove-file', {
+        if (tempBannedUsers.includes(watchedFolderPartners[i])) {
+          tempBannedUsers.splice(
+            tempBannedUsers.indexOf(watchedFolderPartners[i]),
+            1
+          );
+        } else {
+          partners[watchedFolderPartners[i]].emit('add-file', {
+            buffer: data,
             folder: path.basename(watchedFolder),
             filePath: cPath.replace(`${watchedFolder}\\`, ''),
           });
         }
       }
+    });
+    // }
+  })
+  .on('change', async (cPath) => {
+    // if (currentlyBannedItems.includes(cPath)) {
+    //   currentlyBannedItems.splice(currentlyBannedItems.indexOf(cPath), 1);
+    // } else {
+    console.log(`File ${cPath} has been changed`);
+    fs.readFile(cPath, (err, data) => {
+      if (err) throw err;
+
+      let watchedFolderPartners = [];
+      let watchedFolder = '';
+
+      // eslint-disable-next-line no-restricted-syntax
+      for (const key of Object.keys(sharesFolderWise)) {
+        if (cPath.includes(key)) {
+          watchedFolder = key;
+          watchedFolderPartners = sharesFolderWise[key];
+        }
+      }
+      for (let i = 0; i < watchedFolderPartners.length; i++) {
+        if (tempBannedUsers.includes(watchedFolderPartners[i])) {
+          tempBannedUsers.splice(
+            tempBannedUsers.indexOf(watchedFolderPartners[i]),
+            1
+          );
+        } else {
+          partners[watchedFolderPartners[i]].emit('change-file', {
+            buffer: data,
+            folder: path.basename(watchedFolder),
+            filePath: cPath.replace(`${watchedFolder}\\`, ''),
+          });
+        }
+      }
+    });
+    // }
+  })
+  .on('unlink', async (cPath) => {
+    // if (currentlyBannedItems.includes(cPath)) {
+    //   currentlyBannedItems.splice(currentlyBannedItems.indexOf(cPath), 1);
+    // } else {
+    console.log(`File ${cPath} has been removed`);
+    let watchedFolderPartners = [];
+    let watchedFolder = '';
+
+    // eslint-disable-next-line no-restricted-syntax
+    for (const key of Object.keys(sharesFolderWise)) {
+      if (cPath.includes(key)) {
+        watchedFolder = key;
+        watchedFolderPartners = sharesFolderWise[key];
+      }
     }
+    for (let i = 0; i < watchedFolderPartners.length; i++) {
+      if (tempBannedUsers.includes(watchedFolderPartners[i])) {
+        tempBannedUsers.splice(
+          tempBannedUsers.indexOf(watchedFolderPartners[i]),
+          1
+        );
+      } else {
+        partners[watchedFolderPartners[i]].emit('remove-file', {
+          folder: path.basename(watchedFolder),
+          filePath: cPath.replace(`${watchedFolder}\\`, ''),
+        });
+      }
+    }
+    // }
   })
   .on('addDir', (cPath) => {
-    if (currentlyBannedItems.includes(cPath)) {
-      currentlyBannedItems.splice(currentlyBannedItems.indexOf(cPath), 1);
-    } else if (!Object.keys(sharesFolderWise).includes(cPath)) {
+    // if (currentlyBannedItems.includes(cPath)) {
+    //   currentlyBannedItems.splice(currentlyBannedItems.indexOf(cPath), 1);
+    // } else
+    if (!Object.keys(sharesFolderWise).includes(cPath)) {
       console.log(`Directory ${cPath} has been added`);
       let watchedFolderPartners = [];
       let watchedFolder = '';
@@ -133,7 +149,12 @@ watcher
         }
       }
       for (let i = 0; i < watchedFolderPartners.length; i++) {
-        if (!tempBannedUsers.includes(watchedFolderPartners[i])) {
+        if (tempBannedUsers.includes(watchedFolderPartners[i])) {
+          tempBannedUsers.splice(
+            tempBannedUsers.indexOf(watchedFolderPartners[i]),
+            1
+          );
+        } else {
           partners[watchedFolderPartners[i]].emit('add-directory', {
             folder: path.basename(watchedFolder),
             filePath: cPath.replace(`${watchedFolder}\\`, ''),
@@ -143,29 +164,34 @@ watcher
     }
   })
   .on('unlinkDir', (cPath) => {
-    if (currentlyBannedItems.includes(cPath)) {
-      currentlyBannedItems.splice(currentlyBannedItems.indexOf(cPath), 1);
-    } else {
-      console.log(`Directory ${cPath} has been removed`);
-      let watchedFolderPartners = [];
-      let watchedFolder = '';
+    // if (currentlyBannedItems.includes(cPath)) {
+    //   currentlyBannedItems.splice(currentlyBannedItems.indexOf(cPath), 1);
+    // } else {
+    console.log(`Directory ${cPath} has been removed`);
+    let watchedFolderPartners = [];
+    let watchedFolder = '';
 
-      // eslint-disable-next-line no-restricted-syntax
-      for (const key of Object.keys(sharesFolderWise)) {
-        if (cPath.includes(key)) {
-          watchedFolder = key;
-          watchedFolderPartners = sharesFolderWise[key];
-        }
-      }
-      for (let i = 0; i < watchedFolderPartners.length; i++) {
-        if (!tempBannedUsers.includes(watchedFolderPartners[i])) {
-          partners[watchedFolderPartners[i]].emit('remove-directory', {
-            folder: path.basename(watchedFolder),
-            filePath: cPath.replace(`${watchedFolder}\\`, ''),
-          });
-        }
+    // eslint-disable-next-line no-restricted-syntax
+    for (const key of Object.keys(sharesFolderWise)) {
+      if (cPath.includes(key)) {
+        watchedFolder = key;
+        watchedFolderPartners = sharesFolderWise[key];
       }
     }
+    for (let i = 0; i < watchedFolderPartners.length; i++) {
+      if (tempBannedUsers.includes(watchedFolderPartners[i])) {
+        tempBannedUsers.splice(
+          tempBannedUsers.indexOf(watchedFolderPartners[i]),
+          1
+        );
+      } else {
+        partners[watchedFolderPartners[i]].emit('remove-directory', {
+          folder: path.basename(watchedFolder),
+          filePath: cPath.replace(`${watchedFolder}\\`, ''),
+        });
+      }
+    }
+    // }
   });
 
 /// //////////////////////////////////////
@@ -225,7 +251,7 @@ io.on('connection', function (socket) {
   if (localIpAddress === '::1' && !frontendSocket) {
     frontendSocket = socket;
   }
-  // const partnerIp = localIpAddress.split(':').pop();
+  const partnerIp = localIpAddress.split(':').pop();
 
   console.log('connected:', localIpAddress);
 
@@ -233,8 +259,8 @@ io.on('connection', function (socket) {
     const totalPath = `${sharesPartnerWise[partnerIp][arg.folder]}\\${
       arg.filePath
     }`;
-    currentlyBannedItems.push(totalPath);
-    // tempBannedUsers.push(partnerIp);
+    // currentlyBannedItems.push(totalPath);
+    tempBannedUsers.push(partnerIp);
     fs.access(totalPath, fs.constants.F_OK, (err) => {
       fs.unlink(totalPath, (errFile) => {
         if (errFile) {
@@ -249,8 +275,8 @@ io.on('connection', function (socket) {
     const totalPath = `${sharesPartnerWise[partnerIp][arg.folder]}\\${
       arg.filePath
     }`;
-    currentlyBannedItems.push(totalPath);
-    // tempBannedUsers.push(partnerIp);
+    // currentlyBannedItems.push(totalPath);
+    tempBannedUsers.push(partnerIp);
     await fs.rmSync(totalPath, { recursive: true, force: true });
     console.log(`Folder ${totalPath} has been removed`);
   });
@@ -259,9 +285,8 @@ io.on('connection', function (socket) {
     const totalPath = `${sharesPartnerWise[partnerIp][arg.folder]}\\${
       arg.filePath
     }`;
-
-    currentlyBannedItems.push(totalPath);
-    // tempBannedUsers.push(partnerIp);
+    // currentlyBannedItems.push(totalPath);
+    tempBannedUsers.push(partnerIp);
     fs.access(totalPath, fs.constants.F_OK, (err) => {
       if (err) {
         // File does not exist, create it
@@ -279,8 +304,8 @@ io.on('connection', function (socket) {
     const totalPath = `${sharesPartnerWise[partnerIp][arg.folder]}\\${
       arg.filePath
     }`;
-    currentlyBannedItems.push(totalPath);
-
+    // currentlyBannedItems.push(totalPath);
+    tempBannedUsers.push(partnerIp);
     fs.access(totalPath, fs.constants.F_OK, (err) => {
       if (err) {
         // File does not exist, create it
@@ -310,8 +335,8 @@ io.on('connection', function (socket) {
     const totalPath = `${sharesPartnerWise[partnerIp][arg.folder]}\\${
       arg.filePath
     }`;
-    currentlyBannedItems.push(totalPath);
-    // tempBannedUsers.push(partnerIp);
+    // currentlyBannedItems.push(totalPath);
+    tempBannedUsers.push(partnerIp);
     fs.mkdir(totalPath, (errFile) => {
       if (errFile) {
         return;
