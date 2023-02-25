@@ -1,3 +1,5 @@
+/* eslint-disable no-restricted-syntax */
+/* eslint-disable no-plusplus */
 /* eslint-disable no-console */
 const express = require('express');
 const chokidar = require('chokidar');
@@ -30,20 +32,15 @@ const watcher = chokidar.watch([], {
   },
 });
 let frontendSocket = null;
-const currentlyBannedItems = [];
 const tempBannedUsers = [];
 watcher
   .on('add', async (cPath) => {
-    // if (currentlyBannedItems.includes(cPath)) {
-    //   currentlyBannedItems.splice(currentlyBannedItems.indexOf(cPath), 1);
-    // } else {
     console.log(`File ${cPath} has been added`);
     fs.readFile(cPath, (err, data) => {
       if (err) throw err;
       let watchedFolderPartners = [];
       let watchedFolder = '';
 
-      // eslint-disable-next-line no-restricted-syntax
       for (const key of Object.keys(sharesFolderWise)) {
         if (cPath.includes(key)) {
           watchedFolder = key;
@@ -65,12 +62,8 @@ watcher
         }
       }
     });
-    // }
   })
   .on('change', async (cPath) => {
-    // if (currentlyBannedItems.includes(cPath)) {
-    //   currentlyBannedItems.splice(currentlyBannedItems.indexOf(cPath), 1);
-    // } else {
     console.log(`File ${cPath} has been changed`);
     fs.readFile(cPath, (err, data) => {
       if (err) throw err;
@@ -78,7 +71,6 @@ watcher
       let watchedFolderPartners = [];
       let watchedFolder = '';
 
-      // eslint-disable-next-line no-restricted-syntax
       for (const key of Object.keys(sharesFolderWise)) {
         if (cPath.includes(key)) {
           watchedFolder = key;
@@ -100,17 +92,12 @@ watcher
         }
       }
     });
-    // }
   })
   .on('unlink', async (cPath) => {
-    // if (currentlyBannedItems.includes(cPath)) {
-    //   currentlyBannedItems.splice(currentlyBannedItems.indexOf(cPath), 1);
-    // } else {
     console.log(`File ${cPath} has been removed`);
     let watchedFolderPartners = [];
     let watchedFolder = '';
 
-    // eslint-disable-next-line no-restricted-syntax
     for (const key of Object.keys(sharesFolderWise)) {
       if (cPath.includes(key)) {
         watchedFolder = key;
@@ -130,18 +117,13 @@ watcher
         });
       }
     }
-    // }
   })
   .on('addDir', (cPath) => {
-    // if (currentlyBannedItems.includes(cPath)) {
-    //   currentlyBannedItems.splice(currentlyBannedItems.indexOf(cPath), 1);
-    // } else
     if (!Object.keys(sharesFolderWise).includes(cPath)) {
       console.log(`Directory ${cPath} has been added`);
       let watchedFolderPartners = [];
       let watchedFolder = '';
 
-      // eslint-disable-next-line no-restricted-syntax
       for (const key of Object.keys(sharesFolderWise)) {
         if (cPath.includes(key)) {
           watchedFolder = key;
@@ -164,14 +146,10 @@ watcher
     }
   })
   .on('unlinkDir', (cPath) => {
-    // if (currentlyBannedItems.includes(cPath)) {
-    //   currentlyBannedItems.splice(currentlyBannedItems.indexOf(cPath), 1);
-    // } else {
     console.log(`Directory ${cPath} has been removed`);
     let watchedFolderPartners = [];
     let watchedFolder = '';
 
-    // eslint-disable-next-line no-restricted-syntax
     for (const key of Object.keys(sharesFolderWise)) {
       if (cPath.includes(key)) {
         watchedFolder = key;
@@ -191,7 +169,6 @@ watcher
         });
       }
     }
-    // }
   });
 
 /// //////////////////////////////////////
@@ -259,7 +236,6 @@ io.on('connection', function (socket) {
     const totalPath = `${sharesPartnerWise[partnerIp][arg.folder]}\\${
       arg.filePath
     }`;
-    // currentlyBannedItems.push(totalPath);
     tempBannedUsers.push(partnerIp);
     fs.access(totalPath, fs.constants.F_OK, (err) => {
       fs.unlink(totalPath, (errFile) => {
@@ -275,7 +251,6 @@ io.on('connection', function (socket) {
     const totalPath = `${sharesPartnerWise[partnerIp][arg.folder]}\\${
       arg.filePath
     }`;
-    // currentlyBannedItems.push(totalPath);
     tempBannedUsers.push(partnerIp);
     await fs.rmSync(totalPath, { recursive: true, force: true });
     console.log(`Folder ${totalPath} has been removed`);
@@ -285,7 +260,6 @@ io.on('connection', function (socket) {
     const totalPath = `${sharesPartnerWise[partnerIp][arg.folder]}\\${
       arg.filePath
     }`;
-    // currentlyBannedItems.push(totalPath);
     tempBannedUsers.push(partnerIp);
     fs.access(totalPath, fs.constants.F_OK, (err) => {
       if (err) {
@@ -304,7 +278,6 @@ io.on('connection', function (socket) {
     const totalPath = `${sharesPartnerWise[partnerIp][arg.folder]}\\${
       arg.filePath
     }`;
-    // currentlyBannedItems.push(totalPath);
     tempBannedUsers.push(partnerIp);
     fs.access(totalPath, fs.constants.F_OK, (err) => {
       if (err) {
@@ -335,7 +308,6 @@ io.on('connection', function (socket) {
     const totalPath = `${sharesPartnerWise[partnerIp][arg.folder]}\\${
       arg.filePath
     }`;
-    // currentlyBannedItems.push(totalPath);
     tempBannedUsers.push(partnerIp);
     fs.mkdir(totalPath, (errFile) => {
       if (errFile) {
@@ -419,8 +391,8 @@ io.on('connection', function (socket) {
   /// /////////////////////////////////////////////////////////
 
   socket.on('frontend-send-partner-request', async (msg) => {
-    const partnerIp = msg.split(':')[0];
-    if (partners[partnerIp] === undefined) {
+    const receivedPartnerIp = msg.split(':')[0];
+    if (partners[receivedPartnerIp] === undefined) {
       console.log('frontend-send-partner-request', msg);
       let psocket = '';
       try {
@@ -436,7 +408,7 @@ io.on('connection', function (socket) {
         console.error(`Error connecting to  server: ${error}`);
       }
 
-      potentialPartners[partnerIp] = psocket;
+      potentialPartners[receivedPartnerIp] = psocket;
       psocket.emit('backend-send-partner-request');
     }
   });
