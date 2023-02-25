@@ -109,15 +109,19 @@ const createWindow = async () => {
   new AppUpdater();
 };
 
+/**
+ * Added event listeners from react
+ */
+// open a directory dialog and then send the selected file/folder
 ipcMain.on('open-dir', async (event, arg) => {
   const result = await dialog.showOpenDialog({
     properties: ['openDirectory'],
   });
-  // console.log(result.filePaths[0]);
   if (result.filePaths[0] !== undefined)
     event.reply('open-dir', result.filePaths[0]);
 });
 
+// get the computer's ip and then send it
 ipcMain.on('get-ip', async (event, arg) => {
   const networkInterfaces = os.networkInterfaces();
   for (const name of Object.keys(networkInterfaces)) {
@@ -134,9 +138,6 @@ ipcMain.on('get-ip', async (event, arg) => {
     }
   }
 });
-/**
- * Add event listeners...
- */
 
 app.on('window-all-closed', () => {
   // Respect the OSX convention of having the application in memory even

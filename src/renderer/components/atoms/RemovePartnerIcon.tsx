@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from 'react';
-
+import React, { useState, useEffect } from 'react';
 import {
   IconButton,
   Dialog,
@@ -12,18 +11,16 @@ import {
   Select,
   MenuItem,
 } from '@mui/material';
-import CreateNewFolderIcon from '@mui/icons-material/CreateNewFolder';
+import PersonRemoveIcon from '@mui/icons-material/PersonRemove';
 import { useInfo } from '../../context/useInfo';
 
 /**
- * The AddFolderIcon component
- * This component gives the user the ability to add a folder to share
- * @return {JSX.Element} returns a AddFolderIcon component
+ * The RemovePartnerIcon component
+ * @return {JSX.Element} returns a RemovePartnerIcon component
  */
-const AddFolderIcon = () => {
+const RemovePartnerIcon = () => {
   // component settings and event data
   const info = useInfo();
-  const [folderString, setFolderString] = useState('');
   const [selectedPartner, setSelectedPartner] = useState('');
   const [open, setOpen] = useState(false);
   const [disabledSend, setDisabledSend] = useState(false);
@@ -44,27 +41,28 @@ const AddFolderIcon = () => {
     setSelectedPartner(event.target.value as string);
   };
 
-  // send a request to electron to open a directory dialog and then get the selected location
-  const handleFolder = async () => {
-    window.electron.ipcRenderer.sendMessage('open-dir', []);
-    window.electron.ipcRenderer.once('open-dir', (arg) => {
-      setFolderString(arg);
-      setOpen(true);
-    });
+  // handle the state of the dialog
+  const handleOpen = () => {
+    setOpen(true);
   };
 
   // handle the event where the input is valid and the user submitted it
-  const handleSubmit = () => {
-    info.socket.emit('frontend-send-partner-folder-share', {
+  const handleRemove = () => {
+    info.socket.emit('frontend-remove-partner', {
       selectedPartner,
-      folderString,
     });
+    const tempPTable = info.data.pTable.slice();
+    const tempFTable = info.data.fTable.slice();
+    for (let i = 0; i < tempFTable.length; i++) {
+      if (tempFTable[i].partner === selectedPartner) {
+        tempFTable.splice(i, 1);
+      }
+    }
+    tempPTable.splice(tempPTable.indexOf(selectedPartner), 1);
     info?.setInfo({
       ...info.data,
-      fTable: info?.data.fTable.concat({
-        folder: folderString,
-        partner: selectedPartner,
-      }),
+      pTable: tempPTable,
+      fTable: tempFTable,
     });
     setOpen(false);
     setSelectedPartner('');
@@ -72,11 +70,15 @@ const AddFolderIcon = () => {
 
   return (
     <>
-      <IconButton component="span" size="large" onClick={handleFolder}>
-        <CreateNewFolderIcon />
+      <IconButton
+        disabled={info.data?.pTable.length === 0}
+        size="large"
+        onClick={handleOpen}
+      >
+        <PersonRemoveIcon />
       </IconButton>
       <Dialog open={open} onClose={handleClose}>
-        <DialogTitle>Select partner to share with</DialogTitle>
+        <DialogTitle>Select partner to remove</DialogTitle>
         <DialogContent>
           <FormControl fullWidth sx={{ my: 3 }}>
             <InputLabel id="simple-select-label">Partner</InputLabel>
@@ -97,8 +99,8 @@ const AddFolderIcon = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>Cancel</Button>
-          <Button disabled={!disabledSend} onClick={handleSubmit}>
-            Connect
+          <Button disabled={!disabledSend} onClick={handleRemove}>
+            Remove
           </Button>
         </DialogActions>
       </Dialog>
@@ -106,4 +108,4 @@ const AddFolderIcon = () => {
   );
 };
 
-export default AddFolderIcon;
+export default RemovePartnerIcon;

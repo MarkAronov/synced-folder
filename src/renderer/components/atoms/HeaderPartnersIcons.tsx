@@ -16,10 +16,11 @@ import { useInfo } from '../../context/useInfo';
 
 /**
  * The HeaderPartnersIcon component
+ * This component gives the user the ability to add a new partner
  * @return {JSX.Element} returns a HeaderPartnersIcon component
  */
 const HeaderPartnersIcon = () => {
-  const [anchorEl, setAnchorEl] = useState(null);
+  // component settings and event data
   const [open, setOpen] = useState(false);
   const [disabledSend, setDisabledSend] = useState(false);
   const [ipString, setIpString] = useState('');
@@ -27,9 +28,12 @@ const HeaderPartnersIcon = () => {
   const [fullString, setFullString] = useState('');
   const info = useInfo();
 
+  // handle the state of the dialog
   const handleOpen = () => {
     setOpen(true);
   };
+
+  // check constantly for changes in the input and decide whether the input is a valid target
   useEffect(() => {
     const ipAddressRegex = /^([0-9]{1,3}\.){3}[0-9]{1,3}$/;
     const port = Number(portString);
@@ -41,6 +45,7 @@ const HeaderPartnersIcon = () => {
     );
   }, [ipString, portString]);
 
+  // reset event data on close
   const handleClose = () => {
     setOpen(false);
     setIpString('');
@@ -48,6 +53,7 @@ const HeaderPartnersIcon = () => {
     setFullString('');
   };
 
+  // handle the event where the input is valid and the user submitted it
   const handleSubmit = async () => {
     setOpen(false);
     await info.socket.emit(
@@ -59,6 +65,7 @@ const HeaderPartnersIcon = () => {
     setFullString('');
   };
 
+  // add the dialog content into the event data variables
   const handleChange = (event) => {
     setIpString(event.target.value.split(':')[0]);
     setPortString(event.target.value.split(':')[1]);

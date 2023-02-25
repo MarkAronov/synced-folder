@@ -10,11 +10,12 @@ import {
 import { useTheme } from '@mui/material/styles';
 import AddFolderIcon from '../atoms/AddFolderIcon';
 import RemoveFolderIcon from '../atoms/RemoveFolderIcon';
+import RemovePartnerIcon from '../atoms/RemovePartnerIcon';
 import HeaderPartnersIcon from '../atoms/HeaderPartnersIcons';
 /**
  * The Header component
- * @param {object} props object file that contains all the needed props to
- *                       control the Header
+ * This component holds the user's local ip the port, in addition the header
+ * holds 4 icons responsible for different tasks
  * @return {JSX.Element} returns a Header component
  */
 const Header = (): JSX.Element => {
@@ -22,8 +23,10 @@ const Header = (): JSX.Element => {
   const widthChange = useMediaQuery(theme.breakpoints.down('sm'));
   const [ip, setIp] = useState('');
 
+  // request local ip of user's pc
   window.electron.ipcRenderer.sendMessage('get-ip', []);
 
+  // listen back for a replay and then add the local ip to the header banner
   useEffect(() => {
     window.electron.ipcRenderer.once('get-ip', (arg) => {
       setIp(arg);
@@ -53,8 +56,9 @@ const Header = (): JSX.Element => {
         }}
       />
       <Box sx={{ display: widthChange ? 'none' : 'flex' }}>
-        <AddFolderIcon />
         <RemoveFolderIcon />
+        <AddFolderIcon />
+        <RemovePartnerIcon />
         <HeaderPartnersIcon />
       </Box>
     </>

@@ -11,16 +11,15 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Snackbar,
-  IconButton,
 } from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
 import { useInfo } from '../../context/useInfo';
 import Header from '../molecules/Header';
 
 /**
- * Warpping function that adds a header and a drawer to the page
- * @param {any} props contians the page
+ * FrontPage holds all of the frontend's components together, this includes:
+ * The header
+ * The partners table
+ * The shared folders table
  * @return {JSX.Element} the specific page
  */
 const FrontPage = () => {
@@ -29,37 +28,26 @@ const FrontPage = () => {
   const [openPicker, setOpenPicker] = useState(false);
   const [backendData, setBackendData] = useState({});
 
-  const handleCloseSnackbar = (
-    event: React.SyntheticEvent | Event,
-    reason?: string
-  ) => {
-    if (reason === 'clickaway') {
-      return;
-    }
-    info.data.error = { state: false, message: '' };
-    info.setInfo(info.data);
-  };
-
+  // listen for backend on getting a list of active partners and then save it
   info.socket.on('backend-get-partners', (msg) => {
-    console.log(msg);
     if (
-      !(info?.data.ptable.length === msg.length) &&
-      info?.data.ptable.every((element, index) => {
+      !(info?.data.pTable.length === msg.length) &&
+      info?.data.pTable.every((element, index) => {
         return element === msg[index];
       })
     ) {
       info?.setInfo({
         ...info.data,
-        ptable: msg,
+        pTable: msg,
       });
     }
   });
 
+  // open up a dialog in order to pick a location for the shared folder
   info.socket.on('backend-pick-shared-folder-location', (msg) => {
     setBackendData(msg);
     setOpenPicker(true);
   });
-
   if (openPicker) {
     setOpenPicker(false);
     window.electron.ipcRenderer.sendMessage('open-dir', []);
@@ -69,9 +57,9 @@ const FrontPage = () => {
       info.socket.emit('frontend-picked-shared-folder-location', dataToSend);
       info?.setInfo({
         ...info.data,
-        ftable: info?.data.ftable.concat({
+        fTable: info?.data.fTable.concat({
           folder: `${arg}\\${dataToSend.folder}`,
-          partner: dataToSend.selectedParter,
+          partner: dataToSend.partner,
         }),
       });
     });
@@ -110,7 +98,7 @@ const FrontPage = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {info?.data.ptable?.map((row) => (
+                {info?.data.pTable?.map((row) => (
                   <TableRow
                     key={1 + Math.random()}
                     sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
@@ -133,7 +121,7 @@ const FrontPage = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {info?.data.ftable.map((row) => (
+                {info?.data.fTable.map((row) => (
                   <TableRow
                     key={1 + Math.random()}
                     sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
@@ -149,24 +137,6 @@ const FrontPage = () => {
           </TableContainer>
         </Container>
       </Box>
-      <Snackbar
-        open={info.data.error.state}
-        autoHideDuration={6000}
-        onClose={handleCloseSnackbar}
-        message="Note archived"
-        action={
-          <>
-            <IconButton
-              size="small"
-              aria-label="close"
-              color="inherit"
-              onClick={handleCloseSnackbar}
-            >
-              <CloseIcon fontSize="small" />
-            </IconButton>
-          </>
-        }
-      />
     </Box>
   );
 };

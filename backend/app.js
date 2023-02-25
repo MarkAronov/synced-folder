@@ -4,36 +4,15 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const cors = require('cors');
-
-const chokidar = require('chokidar');
 const { router } = require('./routes/index');
 
-// const watcher = chokidar.watch('C:\\Users\\asda\\Downloads\\DayHard', {
-//   ignored: /^\./,
-//   persistent: true,
-//   awaitWriteFinish: true,
-// });
-
-// watcher
-//   .on('add', function (p) {
-//     console.log('File', p, 'has been added');
-//   })
-//   .on('change', function (p) {
-//     console.log('File', p, 'has been changed');
-//   })
-//   .on('unlink', function (p) {
-//     console.log('File', p, 'has been removed');
-//   })
-//   .on('error', function (error) {
-//     console.error('Error happened', error);
-//   });
-
+// this is a generic express.js app file, not a lot has been added 
 const app = express();
 
-app.use(cors());
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 
+app.use(cors());
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
